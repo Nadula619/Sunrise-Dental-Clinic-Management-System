@@ -68,18 +68,22 @@ const Modal = {
 
 // Session & Auth Controller
 async function checkAuth(requiresAuth = true) {
+  const isLoginPage = window.location.pathname.endsWith('login.html');
   try {
     const res = await API.Auth.getSession();
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       const user = res.data;
       sessionStorage.setItem('user', JSON.stringify(user));
       updateUserUI(user);
       applyRolePermissions(user);
       return user;
+    } else {
+      throw new Error('No session');
     }
   } catch (err) {
-    if (requiresAuth && !window.location.pathname.endsWith('login.html')) {
-      window.location.href = 'login.html';
+    sessionStorage.removeItem('user');
+    if (requiresAuth && !isLoginPage) {
+      window.location.replace('login.html');
     }
   }
   return null;
@@ -126,34 +130,29 @@ function applyRolePermissions(user) {
   const staffLink = document.querySelector('a[href="staff.html"]');
 
   if (role === 'DENTIST') {
-    // Dentists are medical practitioners: No billing, No reports, No staff admin
     if (billingLink) billingLink.style.display = 'none';
     if (reportsLink) reportsLink.style.display = 'none';
     if (staffLink) staffLink.style.display = 'none';
 
-    // Restrict direct URL access
     if (currentPath.endsWith('billing.html') || currentPath.endsWith('reports.html') || currentPath.endsWith('staff.html')) {
       alert('Access Restricted: This section is restricted to Administration and Reception staff.');
-      window.location.href = 'appointments.html';
+      window.location.replace('appointments.html');
       return;
     }
 
-    // Hide "Register New Appointment" button for Dentists
     const btnNewAppt = document.getElementById('btnOpenNewAppt');
     if (btnNewAppt) btnNewAppt.style.display = 'none';
 
   } else if (role === 'RECEPTIONIST') {
-    // Receptionists handle front-desk bookings & billing, but cannot view confidential reports or manage staff
     if (reportsLink) reportsLink.style.display = 'none';
     if (staffLink) staffLink.style.display = 'none';
 
     if (currentPath.endsWith('reports.html') || currentPath.endsWith('staff.html')) {
       alert('Access Restricted: Clinic Management & Staff Administration is restricted to Administrators.');
-      window.location.href = 'index.html';
+      window.location.replace('index.html');
       return;
     }
   } else if (role === 'ADMIN') {
-    // Admins see all links
     if (billingLink) billingLink.style.display = 'flex';
     if (reportsLink) reportsLink.style.display = 'flex';
     if (staffLink) staffLink.style.display = 'flex';
@@ -163,13 +162,16 @@ function applyRolePermissions(user) {
 async function handleLogout() {
   try {
     await API.Auth.logout();
-    sessionStorage.removeItem('user');
+  } catch (err) {
+    console.warn('Logout error:', err);
+  } finally {
+    sessionStorage.clear();
+    localStorage.clear();
     Toast.show('Logged out successfully', 'success');
     setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 500);
-  } catch (err) {
-    window.location.href = 'login.html';
+      // Use replace to overwrite the browser history state
+      window.location.replace('login.html');
+    }, 300);
   }
 }
 
@@ -194,6 +196,14 @@ const Format = {
     return `<span class="badge ${badgeClass}">${s.replace('_', ' ')}</span>`;
   }
 };
+
+// Handle Browser Back-Forward Navigation (bfcache)
+window.addEventListener('pageshow', (event) => {
+  const isLoginPage = window.location.pathname.endsWith('login.html');
+  if (!isLoginPage) {
+    checkAuth(true);
+  }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   Modal.initClosers();

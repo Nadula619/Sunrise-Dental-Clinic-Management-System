@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Filter enabling Cross-Origin Resource Sharing (CORS) for distributed web clients.
+ * Filter enabling Cross-Origin Resource Sharing (CORS) and anti-cache headers.
  */
 @WebFilter("/*")
 public class CorsFilter implements Filter {
@@ -26,6 +26,14 @@ public class CorsFilter implements Filter {
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
         res.setHeader("Access-Control-Max-Age", "3600");
+
+        // Prevent browser caching on authenticated pages & dynamic data (Anti-Back button cache)
+        String uri = req.getRequestURI();
+        if (uri.endsWith(".html") || uri.contains("/api/")) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+            res.setHeader("Pragma", "no-cache");
+            res.setDateHeader("Expires", 0);
+        }
 
         if ("OPTIONS".equalsIgnoreCase(req.getMethod())) {
             res.setStatus(HttpServletResponse.SC_OK);

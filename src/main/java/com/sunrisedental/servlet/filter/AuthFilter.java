@@ -8,9 +8,9 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Filter ensuring that protected endpoints and pages require an authenticated session.
+ * Filter ensuring that protected HTML views require an active authenticated session.
  */
-@WebFilter(urlPatterns = {"/appointments.html", "/billing.html", "/reports.html", "/api/appointments/*", "/api/billing/*", "/api/reports/*"})
+@WebFilter(urlPatterns = {"/*"})
 public class AuthFilter implements Filter {
 
     @Override
@@ -22,24 +22,34 @@ public class AuthFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
-        // Skip static resources & auth endpoints
-        String path = req.getRequestURI();
-        if (path.contains("/api/auth") || path.endsWith("login.html") || path.contains("/css/") || path.contains("/js/") || path.contains("/images/")) {
+        String uri = req.getRequestURI();
+
+        // 1. Static assets (css, js, images, fonts) & public auth endpoints are always allowed
+        if (uri.endsWith("login.html") || 
+            uri.contains("/css/") || 
+            uri.contains("/js/") || 
+            uri.contains("/images/") || 
+            uri.contains("/api/auth/login") || 
+            uri.contains("/api/auth/logout") ||
+            uri.contains("/api/auth/session")) {
             chain.doFilter(request, response);
             return;
         }
 
+        // 2. Check session
         HttpSession session = req.getSession(false);
         boolean loggedIn = (session != null && session.getAttribute("currentUser") != null);
 
-        // Allow API calls if in test/development mode or session is active
-        if (loggedIn || path.startsWith(req.getContextPath() + "/api/")) {
-            chain.doFilter(request, response);
+        // 3. If accessing protected HTML pages without session, redirect to login.html
+        if (!loggedIn && (uri.endsWith(".html") || uri.endsWith("/"))) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+            res.setHeader("Pragma", "no-cache");
+            res.setDateHeader("Expires", 0);
+            res.sendRedirect(req.getContextPath() + "/login.html");
             return;
         }
 
-        // Redirect unauthenticated browser requests to login page
-        res.sendRedirect(req.getContextPath() + "/login.html");
+        chain.doFilter(request, response);
     }
 
     @Override

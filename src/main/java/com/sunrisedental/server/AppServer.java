@@ -2,6 +2,7 @@ package com.sunrisedental.server;
 
 import com.sunrisedental.config.AppConfig;
 import com.sunrisedental.servlet.*;
+import com.sunrisedental.servlet.filter.AuthFilter;
 import com.sunrisedental.servlet.filter.CorsFilter;
 import com.sunrisedental.util.DatabaseSeeder;
 import org.apache.catalina.Context;
@@ -69,7 +70,7 @@ public class AppServer {
         Tomcat.addServlet(context, "DentistServlet", new DentistServlet());
         context.addServletMappingDecoded("/api/dentists/*", "DentistServlet");
 
-        // Register CORS Filter using class instance wrapper
+        // 1. Register CORS & Anti-Cache Filter
         FilterDef corsFilterDef = new FilterDef();
         corsFilterDef.setFilterName("CorsFilter");
         corsFilterDef.setFilterClass(CorsFilter.class.getName());
@@ -79,6 +80,17 @@ public class AppServer {
         corsFilterMap.setFilterName("CorsFilter");
         corsFilterMap.addURLPattern("/*");
         context.addFilterMap(corsFilterMap);
+
+        // 2. Register Authentication Security Filter
+        FilterDef authFilterDef = new FilterDef();
+        authFilterDef.setFilterName("AuthFilter");
+        authFilterDef.setFilterClass(AuthFilter.class.getName());
+        context.addFilterDef(authFilterDef);
+
+        FilterMap authFilterMap = new FilterMap();
+        authFilterMap.setFilterName("AuthFilter");
+        authFilterMap.addURLPattern("/*");
+        context.addFilterMap(authFilterMap);
 
         LOGGER.info("==================================================================");
         LOGGER.info("  SUNRISE DENTAL CLINIC MANAGEMENT SYSTEM STARTED                 ");
