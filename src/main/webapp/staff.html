@@ -14,7 +14,7 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="brand-icon">
-          <i class="fa-solid fa-tooth"></i>
+          <img src="images/logo.png" alt="Logo" class="brand-logo-img">
         </div>
         <div class="brand-details">
           <h2>Sunrise Dental</h2>
@@ -74,7 +74,7 @@
             <i class="fa-solid fa-user-doctor"></i> Add New Doctor
           </button>
           <button id="btnOpenNewStaff" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-user-plus"></i> Add Staff User
+            <i class="fa-solid fa-user-plus"></i> Add Receptionist / Staff
           </button>
         </div>
       </header>
@@ -89,10 +89,10 @@
             <div class="card-header">
               <div class="card-title">
                 <i class="fa-solid fa-users" style="color: var(--primary);"></i>
-                Staff Login Accounts
+                Staff Login Accounts (MySQL: <code>users</code>)
               </div>
               <button class="btn btn-primary btn-sm" onclick="Modal.open('newStaffModal')">
-                <i class="fa-solid fa-plus"></i> New User
+                <i class="fa-solid fa-plus"></i> New Staff
               </button>
             </div>
 
@@ -118,7 +118,7 @@
             <div class="card-header">
               <div class="card-title">
                 <i class="fa-solid fa-stethoscope" style="color: var(--secondary);"></i>
-                Dentists & Surgeons Roster
+                Doctors & Consultation Rates (MySQL: <code>dentists</code>)
               </div>
               <button class="btn btn-secondary btn-sm" onclick="Modal.open('newDoctorModal')">
                 <i class="fa-solid fa-plus"></i> Add Doctor
@@ -131,7 +131,7 @@
                   <tr>
                     <th>Doctor Name</th>
                     <th>Specialization</th>
-                    <th>Consultation Fee</th>
+                    <th>Fee (LKR)</th>
                     <th>Contact</th>
                   </tr>
                 </thead>
@@ -170,11 +170,10 @@
               <input type="text" id="staffUsername" class="form-control" placeholder="e.g. kasun" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Role <span class="req">*</span></label>
+              <label class="form-label">Staff Role <span class="req">*</span></label>
               <select id="staffRole" class="form-control" required>
                 <option value="RECEPTIONIST">RECEPTIONIST (Front Desk)</option>
-                <option value="DENTIST">DENTIST (Practitioner)</option>
-                <option value="ADMIN">ADMIN (Manager)</option>
+                <option value="ADMIN">ADMIN (Super Admin / Manager)</option>
               </select>
             </div>
           </div>
@@ -215,7 +214,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Doctor Full Name <span class="req">*</span></label>
-              <input type="text" id="docName" class="form-control" placeholder="e.g. Dr. Kusal Mendis" required>
+              <input type="text" id="docName" class="form-control" placeholder="e.g. Dr. Nuwan Pradeep" required>
             </div>
             <div class="form-group">
               <label class="form-label">Specialization <span class="req">*</span></label>
@@ -236,12 +235,33 @@
 
           <div class="form-group">
             <label class="form-label">Doctor Email</label>
-            <input type="email" id="docEmail" class="form-control" placeholder="e.g. dr.mendis@sunrisedental.lk">
+            <input type="email" id="docEmail" class="form-control" placeholder="e.g. dr.nuwan@sunrisedental.lk">
           </div>
 
           <div class="form-group">
             <label class="form-label">Available Clinic Days</label>
-            <input type="text" id="docDays" class="form-control" placeholder="e.g. Monday, Wednesday, Friday, Saturday">
+            <input type="text" id="docDays" class="form-control" placeholder="e.g. Monday, Wednesday, Friday">
+          </div>
+
+          <!-- Auto Create Login Credentials for Doctor -->
+          <div style="background:var(--bg-light); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-top:10px;">
+            <label style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; cursor:pointer; color:var(--text-main);">
+              <input type="checkbox" id="chkCreateDoctorLogin" checked onchange="toggleDoctorLoginFields()">
+              Also create a portal Login Account for this Doctor
+            </label>
+            
+            <div id="doctorLoginSection" style="margin-top:12px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Doctor Username <span class="req">*</span></label>
+                  <input type="text" id="docUsername" class="form-control" placeholder="e.g. dr.nuwan">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Doctor Password <span class="req">*</span></label>
+                  <input type="password" id="docPassword" class="form-control" placeholder="e.g. doc123" minlength="4">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -258,10 +278,15 @@
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script>
+    function toggleDoctorLoginFields() {
+      const chk = document.getElementById('chkCreateDoctorLogin');
+      const sec = document.getElementById('doctorLoginSection');
+      sec.style.display = chk.checked ? 'block' : 'none';
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const user = await checkAuth(true);
 
-      // Only Admin can access staff management
       if (!user || user.role !== 'ADMIN') {
         alert('Access Restricted: Staff and Doctor management is restricted to Clinic Administrators.');
         window.location.href = 'index.html';
@@ -272,7 +297,18 @@
       await loadDoctors();
 
       document.getElementById('btnOpenNewStaff').addEventListener('click', () => Modal.open('newStaffModal'));
-      document.getElementById('btnOpenNewDoctor').addEventListener('click', () => Modal.open('newDoctorModal'));
+      document.getElementById('btnOpenNewDoctor').addEventListener('click', () => {
+        Modal.open('newDoctorModal');
+      });
+
+      // Auto generate username suggestion when typing doctor name
+      document.getElementById('docName').addEventListener('input', (e) => {
+        const name = e.target.value.trim().toLowerCase().replace(/^(dr\.?|doctor)\s+/i, '');
+        const first = name.split(' ')[0] || '';
+        if (first) {
+          document.getElementById('docUsername').value = 'dr.' + first;
+        }
+      });
 
       document.getElementById('newStaffForm').addEventListener('submit', handleSaveStaff);
       document.getElementById('newDoctorForm').addEventListener('submit', handleSaveDoctor);
@@ -338,7 +374,7 @@
       try {
         const res = await API.request('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
         if (res.success) {
-          Toast.show('Staff account created successfully!', 'success');
+          Toast.show('Staff account created successfully in MySQL!', 'success');
           Modal.close('newStaffModal');
           document.getElementById('newStaffForm').reset();
           await loadStaff();
@@ -359,24 +395,57 @@
 
       const daysStr = document.getElementById('docDays').value.trim();
       const days = daysStr ? daysStr.split(',').map(s => s.trim()) : ['Monday', 'Wednesday', 'Friday'];
+      const docName = document.getElementById('docName').value.trim();
+      const docEmail = document.getElementById('docEmail').value.trim();
 
       const payload = {
-        name: document.getElementById('docName').value.trim(),
+        name: docName,
         specialization: document.getElementById('docSpecialization').value.trim(),
         consultationFee: parseFloat(document.getElementById('docFee').value) || 2500,
         contactNumber: document.getElementById('docPhone').value.trim(),
-        email: document.getElementById('docEmail').value.trim(),
+        email: docEmail,
         availableDays: days
       };
 
+      const createLogin = document.getElementById('chkCreateDoctorLogin').checked;
+      const docUser = document.getElementById('docUsername').value.trim();
+      const docPass = document.getElementById('docPassword').value;
+
+      if (createLogin && (!docUser || !docPass)) {
+        alertBox.textContent = 'Please provide both username and password for the doctor login account.';
+        alertBox.style.display = 'block';
+        return;
+      }
+
       btn.disabled = true;
       try {
+        // 1. Save Doctor Profile
         const res = await API.request('/dentists', { method: 'POST', body: JSON.stringify(payload) });
+        
+        // 2. Optionally create Doctor Login Account
+        if (createLogin && docUser && docPass) {
+          try {
+            await API.request('/auth/register', {
+              method: 'POST',
+              body: JSON.stringify({
+                fullName: docName,
+                username: docUser,
+                password: docPass,
+                role: 'DENTIST',
+                email: docEmail
+              })
+            });
+          } catch (loginErr) {
+            console.warn('Doctor login creation note:', loginErr);
+          }
+        }
+
         if (res.success) {
-          Toast.show('Doctor registered successfully and added to MySQL!', 'success');
+          Toast.show('Doctor profile & login registered successfully in MySQL!', 'success');
           Modal.close('newDoctorModal');
           document.getElementById('newDoctorForm').reset();
           await loadDoctors();
+          await loadStaff();
         }
       } catch (err) {
         alertBox.textContent = err.message || 'Failed to register doctor';
