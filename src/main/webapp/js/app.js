@@ -123,34 +123,40 @@ function applyRolePermissions(user) {
   // Sidebar Links
   const billingLink = document.querySelector('a[href="billing.html"]');
   const reportsLink = document.querySelector('a[href="reports.html"]');
-  const apptsLink = document.querySelector('a[href="appointments.html"]');
+  const staffLink = document.querySelector('a[href="staff.html"]');
 
   if (role === 'DENTIST') {
-    // Dentists are medical practitioners: No billing access, No financial reports
+    // Dentists are medical practitioners: No billing, No reports, No staff admin
     if (billingLink) billingLink.style.display = 'none';
     if (reportsLink) reportsLink.style.display = 'none';
+    if (staffLink) staffLink.style.display = 'none';
 
     // Restrict direct URL access
-    if (currentPath.endsWith('billing.html') || currentPath.endsWith('reports.html')) {
-      alert('Access Restricted: Billing and Financial Reports are restricted to Administration and Reception staff.');
+    if (currentPath.endsWith('billing.html') || currentPath.endsWith('reports.html') || currentPath.endsWith('staff.html')) {
+      alert('Access Restricted: This section is restricted to Administration and Reception staff.');
       window.location.href = 'appointments.html';
       return;
     }
 
-    // Hide "Register New Appointment" button for Dentists (receptionist handles front desk booking)
+    // Hide "Register New Appointment" button for Dentists
     const btnNewAppt = document.getElementById('btnOpenNewAppt');
     if (btnNewAppt) btnNewAppt.style.display = 'none';
 
   } else if (role === 'RECEPTIONIST') {
-    // Receptionists handle front-desk bookings & billing, but cannot view confidential management financial reports
+    // Receptionists handle front-desk bookings & billing, but cannot view confidential reports or manage staff
     if (reportsLink) reportsLink.style.display = 'none';
+    if (staffLink) staffLink.style.display = 'none';
 
-    // Restrict direct URL access to management reports
-    if (currentPath.endsWith('reports.html')) {
-      alert('Access Restricted: Clinic Management Financial Reports are restricted to Clinic Administrators.');
+    if (currentPath.endsWith('reports.html') || currentPath.endsWith('staff.html')) {
+      alert('Access Restricted: Clinic Management & Staff Administration is restricted to Administrators.');
       window.location.href = 'index.html';
       return;
     }
+  } else if (role === 'ADMIN') {
+    // Admins see all links
+    if (billingLink) billingLink.style.display = 'flex';
+    if (reportsLink) reportsLink.style.display = 'flex';
+    if (staffLink) staffLink.style.display = 'flex';
   }
 }
 

@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
@@ -40,6 +41,30 @@ public class DentistServlet extends HttpServlet {
             } else {
                 JsonUtil.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Dentist not found: " + name);
             }
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = req.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+
+        Dentist dentist = JsonUtil.fromJson(sb.toString(), Dentist.class);
+        if (dentist == null || dentist.getName() == null || dentist.getName().trim().isEmpty()) {
+            JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Dentist name is required.");
+            return;
+        }
+
+        boolean saved = dentistDAO.save(dentist);
+        if (saved) {
+            JsonUtil.sendSuccess(resp, "Doctor / Dentist profile saved successfully!", dentist);
+        } else {
+            JsonUtil.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to save dentist profile.");
         }
     }
 }

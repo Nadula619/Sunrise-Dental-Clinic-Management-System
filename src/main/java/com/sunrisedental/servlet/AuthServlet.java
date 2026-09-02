@@ -57,38 +57,35 @@ public class AuthServlet extends HttpServlet {
         String pathInfo = req.getPathInfo();
 
         if ("/login".equals(pathInfo)) {
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = req.getReader()) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
+            StringBuilder sb = readBody(req);
+            try {
+                Map<?, ?> loginData = JsonUtil.fromJson(sb.toString(), Map.class);
+                if (loginData == null) {
+                    JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid login payload");
+                    return;
                 }
-            }
 
-            Map<?, ?> loginData = JsonUtil.fromJson(sb.toString(), Map.class);
-            if (loginData == null) {
-                JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid login payload");
-                return;
-            }
+                String username = (String) loginData.get("username");
+                String password = (String) loginData.get("password");
 
-            String username = (String) loginData.get("username");
-            String password = (String) loginData.get("password");
+                User user = authService.authenticate(username, password);
+                if (user != null) {
+                    HttpSession session = req.getSession(true);
+                    session.setAttribute("currentUser", user);
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes timeout
 
-            User user = authService.authenticate(username, password);
-            if (user != null) {
-                HttpSession session = req.getSession(true);
-                session.setAttribute("currentUser", user);
-                session.setMaxInactiveInterval(30 * 60); // 30 minutes timeout
+                    Map<String, Object> respData = new HashMap<>();
+                    respData.put("username", user.getUsername());
+                    respData.put("fullName", user.getFullName());
+                    respData.put("role", user.getRole());
+                    respData.put("email", user.getEmail());
 
-                Map<String, Object> respData = new HashMap<>();
-                respData.put("username", user.getUsername());
-                respData.put("fullName", user.getFullName());
-                respData.put("role", user.getRole());
-                respData.put("email", user.getEmail());
-
-                JsonUtil.sendSuccess(resp, "Login successful. Welcome " + user.getFullName(), respData);
-            } else {
-                JsonUtil.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password");
+                    JsonUtil.sendSuccess(resp, "Login successful. Welcome " + user.getFullName(), respData);
+                } else {
+                    JsonUtil.sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Invalid username or password");
+                }
+            } catch (Exception e) {
+                JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format: " + e.getMessage());
             }
         } else if ("/logout".equals(pathInfo)) {
             HttpSession session = req.getSession(false);
@@ -97,33 +94,47 @@ public class AuthServlet extends HttpServlet {
             }
             JsonUtil.sendSuccess(resp, "Logged out successfully", null);
         } else if ("/register".equals(pathInfo)) {
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = req.getReader()) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
+            StringBuilder sb = readBody(req);
+            try {
+                Map<?, ?> data = JsonUtil.fromJson(sb.toString(), Map.class);
+                if (data == null) {
+                    JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid registration payload");
+                    return;
                 }
-            }
-            Map<?, ?> data = JsonUtil.fromJson(sb.toString(), Map.class);
-            if (data == null) {
-                JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid registration payload");
-                return;
-            }
 
-            String username = (String) data.get("username");
-            String password = (String) data.get("password");
-            String fullName = (String) data.get("fullName");
-            String role = (String) data.get("role");
-            String email = (String) data.get("email");
+                String username = (String) data.get("username");
+                String password = (String) data.get("password");
+                String fullName = (String) data.get("fullName");
+                String role = (String) data.get("role");
+                String email = (String) data.get("email");
 
-            boolean success = authService.registerStaff(username, password, fullName, role, email);
-            if (success) {
-                JsonUtil.sendSuccess(resp, "Staff account created successfully", null);
-            } else {
-                JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Username already exists or invalid data");
+                if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
+                    JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Username and password are required.");
+                    return;
+                }
+
+                boolean success = authService.registerStaff(username, password, fullName, role, email);
+                if (success) {
+                    JsonUtil.sendSuccess(resp, "Staff account created successfully", null);
+                } else {
+                    JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Username already exists or invalid data");
+                }
+            } catch (Exception e) {
+                JsonUtil.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON payload: " + e.getMessage());
             }
         } else {
             JsonUtil.sendError(resp, HttpServletResponse.SC_NOT_FOUND, "Endpoint not found");
         }
+    }
+
+    private StringBuilder readBody(HttpServletRequest req) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = req.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        return sb;
     }
 }

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff & Doctors Management - Sunrise Dental Clinic</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i class="fa-solid fa-tooth"></i>
+        </div>
+        <div class="brand-details">
+          <h2>Sunrise Dental</h2>
+          <span>Clinic Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-label">Main Menu</span>
+        <a href="index.html" class="nav-link">
+          <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+        </a>
+        <a href="appointments.html" class="nav-link">
+          <i class="fa-solid fa-calendar-check nav-icon"></i> Appointments
+        </a>
+        <a href="billing.html" class="nav-link">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon"></i> Billing & Invoices
+        </a>
+        <a href="reports.html" class="nav-link">
+          <i class="fa-solid fa-chart-line nav-icon"></i> Management Reports
+        </a>
+        <a href="staff.html" class="nav-link active" id="navStaffLink">
+          <i class="fa-solid fa-user-gear nav-icon"></i> Staff & Doctors
+        </a>
+        
+        <span class="nav-label" style="margin-top: 14px;">Documentation</span>
+        <a href="help.html" class="nav-link">
+          <i class="fa-solid fa-circle-question nav-icon"></i> Staff Help Guide
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatarDisplay">AD</div>
+            <div class="user-meta">
+              <h4 id="userNameDisplay">Admin User</h4>
+              <span id="userRoleDisplay">ADMIN</span>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Exit / Logout System">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="page-title">
+          <h1>Staff & Doctor Management</h1>
+          <p>Register clinic receptionists, staff logins, and add new dental practitioners</p>
+        </div>
+        <div class="header-actions">
+          <button id="btnOpenNewDoctor" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-user-doctor"></i> Add New Doctor
+          </button>
+          <button id="btnOpenNewStaff" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-user-plus"></i> Add Staff User
+          </button>
+        </div>
+      </header>
+
+      <main class="content-body">
+        
+        <!-- Two Column Management Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px;">
+          
+          <!-- Staff User Accounts Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="fa-solid fa-users" style="color: var(--primary);"></i>
+                Staff Login Accounts
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="Modal.open('newStaffModal')">
+                <i class="fa-solid fa-plus"></i> New User
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                  </tr>
+                </thead>
+                <tbody id="staffTbody">
+                  <tr><td colspan="4" style="text-align:center; padding:20px;">Loading staff accounts...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Clinic Dentists / Doctors Card -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="fa-solid fa-stethoscope" style="color: var(--secondary);"></i>
+                Dentists & Surgeons Roster
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="Modal.open('newDoctorModal')">
+                <i class="fa-solid fa-plus"></i> Add Doctor
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Doctor Name</th>
+                    <th>Specialization</th>
+                    <th>Consultation Fee</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody id="dentistsTbody">
+                  <tr><td colspan="4" style="text-align:center; padding:20px;">Loading doctors...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Staff User -->
+  <div class="modal-overlay" id="newStaffModal">
+    <div class="modal" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> Add New Staff Login Account</h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <form id="newStaffForm">
+        <div class="modal-body">
+          <div id="staffModalAlert" style="display:none; padding:10px; border-radius:var(--radius-md); background:var(--danger-light); color:#991b1b; font-size:13px; margin-bottom:14px;"></div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="req">*</span></label>
+            <input type="text" id="staffFullName" class="form-control" placeholder="e.g. Kasun Silva" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Username <span class="req">*</span></label>
+              <input type="text" id="staffUsername" class="form-control" placeholder="e.g. kasun" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role <span class="req">*</span></label>
+              <select id="staffRole" class="form-control" required>
+                <option value="RECEPTIONIST">RECEPTIONIST (Front Desk)</option>
+                <option value="DENTIST">DENTIST (Practitioner)</option>
+                <option value="ADMIN">ADMIN (Manager)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Password <span class="req">*</span></label>
+              <input type="password" id="staffPassword" class="form-control" placeholder="Enter secure password" required minlength="4">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="staffEmail" class="form-control" placeholder="e.g. kasun@sunrisedental.lk">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSaveStaff" class="btn btn-primary">
+            <i class="fa-solid fa-check"></i> Create Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Dentist / Doctor -->
+  <div class="modal-overlay" id="newDoctorModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-doctor" style="color: var(--secondary);"></i> Register New Dentist / Surgeon</h3>
+        <button class="modal-close" data-dismiss="modal">&times;</button>
+      </div>
+      <form id="newDoctorForm">
+        <div class="modal-body">
+          <div id="doctorModalAlert" style="display:none; padding:10px; border-radius:var(--radius-md); background:var(--danger-light); color:#991b1b; font-size:13px; margin-bottom:14px;"></div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Doctor Full Name <span class="req">*</span></label>
+              <input type="text" id="docName" class="form-control" placeholder="e.g. Dr. Kusal Mendis" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Specialization <span class="req">*</span></label>
+              <input type="text" id="docSpecialization" class="form-control" placeholder="e.g. Orthodontist / Dental Surgeon" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Consultation Fee (LKR) <span class="req">*</span></label>
+              <input type="number" id="docFee" class="form-control" min="500" step="100" value="2500" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Number <span class="req">*</span></label>
+              <input type="tel" id="docPhone" class="form-control" placeholder="e.g. 0771234567" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Doctor Email</label>
+            <input type="email" id="docEmail" class="form-control" placeholder="e.g. dr.mendis@sunrisedental.lk">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Available Clinic Days</label>
+            <input type="text" id="docDays" class="form-control" placeholder="e.g. Monday, Wednesday, Friday, Saturday">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" id="btnSaveDoctor" class="btn btn-primary">
+            <i class="fa-solid fa-check"></i> Register Doctor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuth(true);
+
+      // Only Admin can access staff management
+      if (!user || user.role !== 'ADMIN') {
+        alert('Access Restricted: Staff and Doctor management is restricted to Clinic Administrators.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await loadStaff();
+      await loadDoctors();
+
+      document.getElementById('btnOpenNewStaff').addEventListener('click', () => Modal.open('newStaffModal'));
+      document.getElementById('btnOpenNewDoctor').addEventListener('click', () => Modal.open('newDoctorModal'));
+
+      document.getElementById('newStaffForm').addEventListener('submit', handleSaveStaff);
+      document.getElementById('newDoctorForm').addEventListener('submit', handleSaveDoctor);
+    });
+
+    async function loadStaff() {
+      try {
+        const res = await API.Auth.getStaffList();
+        const tbody = document.getElementById('staffTbody');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(u => `
+            <tr>
+              <td><strong>${u.fullName || u.username}</strong></td>
+              <td><code>${u.username}</code></td>
+              <td><span class="badge ${u.role === 'ADMIN' ? 'badge-completed' : (u.role === 'DENTIST' ? 'badge-scheduled' : 'badge-in_progress')}">${u.role}</span></td>
+              <td><span style="font-size:12px; color:var(--text-muted);">${u.email || '-'}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No staff records found.</td></tr>';
+        }
+      } catch (err) {
+        console.error('Error loading staff:', err);
+      }
+    }
+
+    async function loadDoctors() {
+      try {
+        const res = await API.Catalog.getDentists();
+        const tbody = document.getElementById('dentistsTbody');
+        if (res.success && res.data && res.data.length > 0) {
+          tbody.innerHTML = res.data.map(d => `
+            <tr>
+              <td><strong>${d.name}</strong></td>
+              <td><span style="font-size:12.5px;">${d.specialization}</span></td>
+              <td><strong>${Format.currency(d.consultationFee)}</strong></td>
+              <td><span style="font-size:12px;">${d.contactNumber || '-'}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No doctor records found.</td></tr>';
+        }
+      } catch (err) {
+        console.error('Error loading doctors:', err);
+      }
+    }
+
+    async function handleSaveStaff(e) {
+      e.preventDefault();
+      const alertBox = document.getElementById('staffModalAlert');
+      const btn = document.getElementById('btnSaveStaff');
+      alertBox.style.display = 'none';
+
+      const payload = {
+        fullName: document.getElementById('staffFullName').value.trim(),
+        username: document.getElementById('staffUsername').value.trim(),
+        password: document.getElementById('staffPassword').value,
+        role: document.getElementById('staffRole').value,
+        email: document.getElementById('staffEmail').value.trim()
+      };
+
+      btn.disabled = true;
+      try {
+        const res = await API.request('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
+        if (res.success) {
+          Toast.show('Staff account created successfully!', 'success');
+          Modal.close('newStaffModal');
+          document.getElementById('newStaffForm').reset();
+          await loadStaff();
+        }
+      } catch (err) {
+        alertBox.textContent = err.message || 'Failed to create staff account';
+        alertBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleSaveDoctor(e) {
+      e.preventDefault();
+      const alertBox = document.getElementById('doctorModalAlert');
+      const btn = document.getElementById('btnSaveDoctor');
+      alertBox.style.display = 'none';
+
+      const daysStr = document.getElementById('docDays').value.trim();
+      const days = daysStr ? daysStr.split(',').map(s => s.trim()) : ['Monday', 'Wednesday', 'Friday'];
+
+      const payload = {
+        name: document.getElementById('docName').value.trim(),
+        specialization: document.getElementById('docSpecialization').value.trim(),
+        consultationFee: parseFloat(document.getElementById('docFee').value) || 2500,
+        contactNumber: document.getElementById('docPhone').value.trim(),
+        email: document.getElementById('docEmail').value.trim(),
+        availableDays: days
+      };
+
+      btn.disabled = true;
+      try {
+        const res = await API.request('/dentists', { method: 'POST', body: JSON.stringify(payload) });
+        if (res.success) {
+          Toast.show('Doctor registered successfully and added to MySQL!', 'success');
+          Modal.close('newDoctorModal');
+          document.getElementById('newDoctorForm').reset();
+          await loadDoctors();
+        }
+      } catch (err) {
+        alertBox.textContent = err.message || 'Failed to register doctor';
+        alertBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
