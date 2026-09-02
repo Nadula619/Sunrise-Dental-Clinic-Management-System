@@ -1,30 +1,31 @@
 package com.sunrisedental.dao;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
 import com.sunrisedental.config.DatabaseConnection;
 import com.sunrisedental.model.Treatment;
-import org.bson.Document;
 
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * MongoDB implementation of ITreatmentDAO with pre-seeded standard dental procedures.
+ * MySQL & MongoDB implementation of ITreatmentDAO with preset catalog.
  */
 public class TreatmentDAOImpl implements ITreatmentDAO {
     private static final Logger LOGGER = Logger.getLogger(TreatmentDAOImpl.class.getName());
-    private static final String COLLECTION_NAME = "treatments";
-
     private static final Map<String, Treatment> MEMORY_STORE = new ConcurrentHashMap<>();
 
     public TreatmentDAOImpl() {
-        // Ensure default treatments are available
         initDefaults();
+    }
+
+    private Connection getConnection() {
+        try {
+            return DatabaseConnection.getInstance().getSqlConnection();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void initDefaults() {
@@ -38,6 +39,11 @@ public class TreatmentDAOImpl implements ITreatmentDAO {
             addDefault(new Treatment("TRT-007", "Teeth Whitening & Bleaching", "Cosmetic", 25000.00, 60, "In-office laser whitening session"));
             addDefault(new Treatment("TRT-008", "Porcelain Crown / Bridge", "Prosthodontics", 28000.00, 60, "High-grade ceramic crown placement"));
             addDefault(new Treatment("TRT-009", "Orthodontic Consultation & Braces", "Orthodontics", 45000.00, 60, "Orthodontic assessment and appliance fitting"));
+
+            // Sync to MySQL
+            for (Treatment t : MEMORY_STORE.values()) {
+                save(t);
+            }
         }
     }
 
@@ -45,36 +51,21 @@ public class TreatmentDAOImpl implements ITreatmentDAO {
         MEMORY_STORE.put(t.getCode(), t);
     }
 
-    private MongoCollection<Document> getCollection() {
-        try {
-            DatabaseConnection dbConn = DatabaseConnection.getInstance();
-            if (dbConn.isConnected()) {
-                MongoDatabase db = dbConn.getDatabase();
-                if (db != null) {
-                    return db.getCollection(COLLECTION_NAME);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.FINE, "MongoDB not accessible, using memory store", e);
-        }
-        return null;
-    }
-
     @Override
     public List<Treatment> findAll() {
         List<Treatment> list = new ArrayList<>();
-        MongoCollection<Document> coll = getCollection();
-        if (coll != null) {
-            try {
-                for (Document doc : coll.find()) {
-                    list.add(docToTreatment(doc));
+        try (Connection conn = getConnection()) {
+            if (conn != null) {
+                String sql = "SELECT * FROM treatments ORDER BY code ASC";
+                try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+                    while (rs.next()) {
+                        list.add(rsToTreatment(rs));
+                    }
+                    if (!list.isEmpty()) return list;
                 }
-                if (!list.isEmpty()) {
-                    return list;
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error reading treatments from MongoDB: " + e.getMessage());
             }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error reading treatments from MySQL: " + e.getMessage());
         }
         return new ArrayList<>(MEMORY_STORE.values());
     }
@@ -83,17 +74,17 @@ public class TreatmentDAOImpl implements ITreatmentDAO {
     public Treatment findByCode(String code) {
         if (code == null) return null;
 
-        MongoCollection<Document> coll = getCollection();
-        if (coll != null) {
-            try {
-                Document doc = coll.find(Filters.eq("code", code.trim())).first();
-                if (doc != null) {
-                    return docToTreatment(doc);
+        try (Connection conn = getConnection()) {
+            if (conn != null) {
+                String sql = "SELECT * FROM treatments WHERE code = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, code.trim());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) return rsToTreatment(rs);
+                    }
                 }
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error reading treatment by code: " + e.getMessage());
             }
-        }
+        } catch (Exception e) {}
 
         return MEMORY_STORE.get(code.trim());
     }
@@ -104,11 +95,10 @@ public class TreatmentDAOImpl implements ITreatmentDAO {
 
         String target = name.trim().toLowerCase();
         for (Treatment t : findAll()) {
-            if (t.getName() != null && t.getName().toLowerCase().equals(target)) {
+            if (t.getName() != null && t.getName().toLowerCase().equalsIgnoreCase(target)) {
                 return t;
             }
         }
-        // Partial match
         for (Treatment t : findAll()) {
             if (t.getName() != null && t.getName().toLowerCase().contains(target)) {
                 return t;
@@ -121,39 +111,38 @@ public class TreatmentDAOImpl implements ITreatmentDAO {
     public boolean save(Treatment treatment) {
         if (treatment == null || treatment.getCode() == null) return false;
 
-        MongoCollection<Document> coll = getCollection();
-        if (coll != null) {
-            try {
-                Document doc = treatmentToDoc(treatment);
-                coll.replaceOne(Filters.eq("code", treatment.getCode()), doc, new ReplaceOptions().upsert(true));
-            } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Error saving treatment in MongoDB: " + e.getMessage());
+        try (Connection conn = getConnection()) {
+            if (conn != null) {
+                String sql = "INSERT INTO treatments (code, name, category, base_price, estimated_minutes, description) " +
+                             "VALUES (?, ?, ?, ?, ?, ?) " +
+                             "ON DUPLICATE KEY UPDATE name = VALUES(name), category = VALUES(category), " +
+                             "base_price = VALUES(base_price), estimated_minutes = VALUES(estimated_minutes), description = VALUES(description)";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, treatment.getCode());
+                    ps.setString(2, treatment.getName());
+                    ps.setString(3, treatment.getCategory());
+                    ps.setDouble(4, treatment.getBasePrice());
+                    ps.setInt(5, treatment.getEstimatedMinutes());
+                    ps.setString(6, treatment.getDescription());
+                    ps.executeUpdate();
+                }
             }
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Error saving treatment in MySQL: " + e.getMessage());
         }
 
         MEMORY_STORE.put(treatment.getCode(), treatment);
         return true;
     }
 
-    private Treatment docToTreatment(Document doc) {
+    private Treatment rsToTreatment(ResultSet rs) throws SQLException {
         Treatment t = new Treatment();
-        t.setCode(doc.getString("code"));
-        t.setName(doc.getString("name"));
-        t.setCategory(doc.getString("category"));
-        t.setBasePrice(doc.getDouble("basePrice") != null ? doc.getDouble("basePrice") : 0.0);
-        t.setEstimatedMinutes(doc.getInteger("estimatedMinutes") != null ? doc.getInteger("estimatedMinutes") : 30);
-        t.setDescription(doc.getString("description"));
+        t.setCode(rs.getString("code"));
+        t.setName(rs.getString("name"));
+        t.setCategory(rs.getString("category"));
+        t.setBasePrice(rs.getDouble("base_price"));
+        t.setEstimatedMinutes(rs.getInt("estimated_minutes"));
+        t.setDescription(rs.getString("description"));
         return t;
-    }
-
-    private Document treatmentToDoc(Treatment t) {
-        Document doc = new Document();
-        doc.append("code", t.getCode())
-           .append("name", t.getName())
-           .append("category", t.getCategory())
-           .append("basePrice", t.getBasePrice())
-           .append("estimatedMinutes", t.getEstimatedMinutes())
-           .append("description", t.getDescription());
-        return doc;
     }
 }

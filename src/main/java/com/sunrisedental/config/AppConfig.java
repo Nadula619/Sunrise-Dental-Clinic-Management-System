@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Configuration loader for application settings and MongoDB connection details.
+ * Configuration loader for application settings and database connection details.
  */
 public class AppConfig {
     private static final Logger LOGGER = Logger.getLogger(AppConfig.class.getName());
@@ -32,6 +32,22 @@ public class AppConfig {
             return sysProp;
         }
         return properties.getProperty(key, defaultValue);
+    }
+
+    public static String getDbType() {
+        return getProperty("db.type", "mysql");
+    }
+
+    public static String getMysqlUrl() {
+        return getProperty("mysql.url", "jdbc:mysql://localhost:3306/sunrise_dental_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true");
+    }
+
+    public static String getMysqlUser() {
+        return getProperty("mysql.user", "root");
+    }
+
+    public static String getMysqlPassword() {
+        return getProperty("mysql.password", "");
     }
 
     public static String getMongoUri() {
