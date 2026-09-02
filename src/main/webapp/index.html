@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Sunrise Dental Clinic Management System</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i class="fa-solid fa-tooth"></i>
+        </div>
+        <div class="brand-details">
+          <h2>Sunrise Dental</h2>
+          <span>Clinic Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-label">Main Menu</span>
+        <a href="index.html" class="nav-link active">
+          <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+        </a>
+        <a href="appointments.html" class="nav-link">
+          <i class="fa-solid fa-calendar-check nav-icon"></i> Appointments
+        </a>
+        <a href="billing.html" class="nav-link">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon"></i> Billing & Invoices
+        </a>
+        <a href="reports.html" class="nav-link">
+          <i class="fa-solid fa-chart-line nav-icon"></i> Management Reports
+        </a>
+        
+        <span class="nav-label" style="margin-top: 14px;">Documentation</span>
+        <a href="help.html" class="nav-link">
+          <i class="fa-solid fa-circle-question nav-icon"></i> Staff Help Guide
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatarDisplay">AD</div>
+            <div class="user-meta">
+              <h4 id="userNameDisplay">Admin User</h4>
+              <span id="userRoleDisplay">ADMIN</span>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Exit / Logout System">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="page-title">
+          <h1 id="dashTitle">Clinic Dashboard</h1>
+          <p id="dashSub">Real-time operational summary, patient bookings, and revenue</p>
+        </div>
+        <div class="header-actions">
+          <div class="clinic-badge">Colombo 03 Branch • Online</div>
+          <a href="appointments.html?action=new" id="btnHeaderNewAppt" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-plus"></i> New Appointment
+          </a>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <!-- KPI Metrics Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="stat-info">
+              <span>Total Bookings</span>
+              <h3 id="statTotalAppts">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon teal">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <span>Scheduled / Active</span>
+              <h3 id="statScheduled">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-info">
+              <span>Completed Visits</span>
+              <h3 id="statCompleted">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card" id="cardRevenueStat">
+            <div class="stat-icon purple">
+              <i class="fa-solid fa-coins"></i>
+            </div>
+            <div class="stat-info">
+              <span>Total Revenue</span>
+              <h3 id="statRevenue">LKR 0.00</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Banner -->
+        <div class="card" style="background: linear-gradient(135deg, #0284c7, #0d9488); color: white; border: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h2 style="color: white; font-size: 20px;">Sunrise Dental Clinic Management Portal</h2>
+              <p style="opacity: 0.9; font-size: 13.5px; margin-top: 4px;">
+                Manage appointments, issue itemized bills, prevent double bookings, and view clinic performance.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <a href="appointments.html" class="btn btn-secondary" style="background: white; color: #0284c7; border: none; font-weight: 700;">
+                <i class="fa-solid fa-calendar-plus"></i> Manage Appointments
+              </a>
+              <a href="billing.html" id="btnBannerBilling" class="btn btn-secondary" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);">
+                <i class="fa-solid fa-receipt"></i> Billing Center
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Appointments & Recent Invoices Layout -->
+        <div id="dashGrid" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-top: 24px;">
+          
+          <!-- Recent Appointments Card -->
+          <div class="card" id="recentApptsCard">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Recent Patient Bookings
+              </div>
+              <a href="appointments.html" class="btn btn-secondary btn-sm">View All</a>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table" id="recentApptsTable">
+                <thead>
+                  <tr>
+                    <th>Appt No</th>
+                    <th>Patient Name</th>
+                    <th>Dentist</th>
+                    <th>Date / Time</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentApptsTbody">
+                  <tr>
+                    <td colspan="5" style="text-align:center; padding: 20px; color: var(--text-muted);">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Loading appointments...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Invoices Card (Hidden for Dentists) -->
+          <div class="card" id="recentInvoicesCard">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="fa-solid fa-file-invoice" style="color: var(--secondary);"></i> Recent Invoices
+              </div>
+              <a href="billing.html" class="btn btn-secondary btn-sm">View All</a>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Bill No</th>
+                    <th>Patient</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentBillsTbody">
+                  <tr>
+                    <td colspan="4" style="text-align:center; padding: 20px; color: var(--text-muted);">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Loading invoices...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      currentUser = await checkAuth(true);
+
+      if (currentUser && currentUser.role === 'DENTIST') {
+        const btnHead = document.getElementById('btnHeaderNewAppt');
+        if (btnHead) btnHead.style.display = 'none';
+
+        const btnBill = document.getElementById('btnBannerBilling');
+        if (btnBill) btnBill.style.display = 'none';
+
+        const revCard = document.getElementById('cardRevenueStat');
+        if (revCard) revCard.style.display = 'none';
+
+        const invCard = document.getElementById('recentInvoicesCard');
+        if (invCard) invCard.style.display = 'none';
+
+        document.getElementById('dashGrid').style.gridTemplateColumns = '1fr';
+        document.getElementById('dashTitle').textContent = 'Doctor Clinical Dashboard';
+        document.getElementById('dashSub').textContent = 'Welcome Dr. ' + (currentUser.fullName || currentUser.username) + ' • Today\'s schedule & patients';
+      }
+
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      try {
+        const summaryRes = await API.Reports.getSummary();
+        if (summaryRes.success && summaryRes.data) {
+          const s = summaryRes.data;
+          document.getElementById('statTotalAppts').textContent = s.totalAppointments || 0;
+          document.getElementById('statScheduled').textContent = s.scheduledAppointments || 0;
+          document.getElementById('statCompleted').textContent = s.completedAppointments || 0;
+          document.getElementById('statRevenue').textContent = Format.currency(s.totalRevenue || 0);
+        }
+
+        const apptsRes = await API.Appointments.getAll();
+        const tbodyAppts = document.getElementById('recentApptsTbody');
+        if (apptsRes.success && apptsRes.data && apptsRes.data.length > 0) {
+          let list = apptsRes.data;
+          if (currentUser && currentUser.role === 'DENTIST') {
+            const docName = (currentUser.fullName || currentUser.username).toLowerCase();
+            list = list.filter(a => a.dentistName && a.dentistName.toLowerCase().includes(docName.replace('dr. ', '').replace('dr.', '').trim()));
+          }
+
+          tbodyAppts.innerHTML = list.slice(0, 5).map(a => `
+            <tr>
+              <td><strong>${a.appointmentNumber}</strong></td>
+              <td>${a.patientName}</td>
+              <td><span style="font-size:12px; color:var(--text-muted);">${a.dentistName}</span></td>
+              <td>${a.appointmentDate} <span style="font-size:11px; color:var(--text-muted);">${a.appointmentTime}</span></td>
+              <td>${Format.statusBadge(a.status)}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbodyAppts.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">No appointments found.</td></tr>`;
+        }
+
+        if (!currentUser || currentUser.role !== 'DENTIST') {
+          const billsRes = await API.Billing.getAll();
+          const tbodyBills = document.getElementById('recentBillsTbody');
+          if (billsRes.success && billsRes.data && billsRes.data.length > 0) {
+            tbodyBills.innerHTML = billsRes.data.slice(0, 5).map(b => `
+              <tr>
+                <td><strong>${b.billNumber}</strong></td>
+                <td>${b.patientName}</td>
+                <td><strong>${Format.currency(b.totalAmount)}</strong></td>
+                <td>${Format.statusBadge(b.paymentStatus)}</td>
+              </tr>
+            `).join('');
+          } else {
+            tbodyBills.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">No invoices generated yet.</td></tr>`;
+          }
+        }
+
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff User Guide - Sunrise Dental Clinic Management</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i class="fa-solid fa-tooth"></i>
+        </div>
+        <div class="brand-details">
+          <h2>Sunrise Dental</h2>
+          <span>Clinic Management</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-label">Main Menu</span>
+        <a href="index.html" class="nav-link">
+          <i class="fa-solid fa-chart-pie nav-icon"></i> Dashboard
+        </a>
+        <a href="appointments.html" class="nav-link">
+          <i class="fa-solid fa-calendar-check nav-icon"></i> Appointments
+        </a>
+        <a href="billing.html" class="nav-link">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon"></i> Billing & Invoices
+        </a>
+        <a href="reports.html" class="nav-link">
+          <i class="fa-solid fa-chart-line nav-icon"></i> Management Reports
+        </a>
+        
+        <span class="nav-label" style="margin-top: 14px;">Documentation</span>
+        <a href="help.html" class="nav-link active">
+          <i class="fa-solid fa-circle-question nav-icon"></i> Staff Help Guide
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatarDisplay">AD</div>
+            <div class="user-meta">
+              <h4 id="userNameDisplay">Admin User</h4>
+              <span id="userRoleDisplay">ADMIN</span>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="Exit / Logout System">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="page-title">
+          <h1>Clinic Staff Operating Manual & Help</h1>
+          <p>Standard operating procedures (SOP) and step-by-step instructions for clinic receptionists</p>
+        </div>
+      </header>
+
+      <main class="content-body" style="max-width: 1100px;">
+        
+        <!-- Welcome Guide Banner -->
+        <div class="card" style="border-left: 6px solid var(--primary); background: #f0fdf4;">
+          <div style="display: flex; gap: 16px; align-items: flex-start;">
+            <div style="font-size: 28px; color: var(--secondary); margin-top: 2px;">
+              <i class="fa-solid fa-hand-holding-medical"></i>
+            </div>
+            <div>
+              <h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 6px;">Welcome to the Sunrise Dental Clinic System</h3>
+              <p style="font-size: 13.5px; color: var(--text-muted); line-height: 1.6;">
+                This computerized patient management system replaces manual notebook records to eliminate double-bookings, billing errors, and lost files. Follow the standard procedures below to register patients, manage schedules, and process payments.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 1: User Authentication & Security -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span style="background: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">1</span>
+              User Authentication & Role-Based Access
+            </div>
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.7;">
+            <p><strong>Logging into the System:</strong></p>
+            <ul style="margin-left: 24px; margin-top: 6px; margin-bottom: 12px;">
+              <li>Navigate to the login portal (<code>login.html</code>).</li>
+              <li>Enter your assigned authorized staff username and password.</li>
+              <li>Authorized roles include <strong>Administrator</strong>, <strong>Receptionist</strong>, and <strong>Dentist</strong>.</li>
+              <li>Passwords are securely encrypted with BCrypt salted hashing.</li>
+            </ul>
+            <p><strong>Safe System Exit:</strong> Click the red logout icon in the bottom-left profile panel to invalidate your secure session before leaving the terminal.</p>
+          </div>
+        </div>
+
+        <!-- Section 2: Registering a New Appointment -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span style="background: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">2</span>
+              Registering a New Patient Appointment
+            </div>
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.7;">
+            <p>To register a walk-in or phone-in booking:</p>
+            <ol style="margin-left: 24px; margin-top: 6px; margin-bottom: 12px;">
+              <li>Click the <strong>"Register New Appointment"</strong> button in the top navigation or on the Appointments page.</li>
+              <li>Enter the <strong>Patient Full Name</strong> (letters only, min 2 characters).</li>
+              <li>Enter a valid 10-digit Sri Lankan phone number (e.g. <code>0771234567</code>).</li>
+              <li>Select the attending <strong>Dentist</strong> from the roster.</li>
+              <li>Select the required <strong>Treatment Procedure</strong> (base cost will be retrieved automatically).</li>
+              <li>Choose the <strong>Appointment Date</strong> and <strong>Time Slot</strong> (operating hours 08:00 to 20:00).</li>
+              <li>Click <strong>Confirm & Book Appointment</strong>. The system will automatically check for doctor conflicts and generate a unique tracking ID (e.g., <code>APT-2026-0005</code>).</li>
+            </ol>
+            <div style="background: #fffbeb; padding: 10px 14px; border-radius: var(--radius-sm); border-left: 4px solid var(--warning); font-size: 13px; color: #92400e;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>Conflict Prevention:</strong> If a doctor already has a booked visit at the same date and time, the system will block the submission and alert you to select another slot.
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Searching and Viewing Appointment Records -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span style="background: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">3</span>
+              Searching and Looking Up Patient Records
+            </div>
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.7;">
+            <p>To find an existing booking or patient history:</p>
+            <ul style="margin-left: 24px; margin-top: 6px; margin-bottom: 12px;">
+              <li>Use the live search bar on the <strong>Appointments</strong> page. You can search by <strong>Appointment Number</strong> (e.g. <code>APT-2026-0001</code>), <strong>Patient Name</strong>, <strong>Contact Number</strong>, or <strong>Dentist</strong>.</li>
+              <li>Filter by <strong>Attending Dentist</strong>, <strong>Booking Status</strong> (Scheduled, In Progress, Completed, Cancelled), or specific <strong>Date</strong>.</li>
+              <li>Click the <i class="fa-solid fa-eye" style="color:var(--primary);"></i> icon to open the complete patient card showing contact address, clinical notes, and doctor allocation.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section 4: Billing Calculation & Printing Official Receipts -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span style="background: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">4</span>
+              Calculating Treatment Fees & Printing Receipts
+            </div>
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.7;">
+            <p>To issue an official patient receipt:</p>
+            <ol style="margin-left: 24px; margin-top: 6px; margin-bottom: 12px;">
+              <li>Navigate to the <strong>Billing & Invoices</strong> page and click <strong>"Create New Invoice"</strong> (or click the receipt icon next to any appointment).</li>
+              <li>Select the target appointment. Patient, doctor, procedure, and base treatment fees load automatically.</li>
+              <li>Add any <strong>Extra Charges</strong> (e.g. specialized medication, x-rays, disposables).</li>
+              <li>Select the patient's <strong>Discount Strategy</strong>:
+                <ul style="margin-left: 20px; margin-top: 4px;">
+                  <li><em>Standard:</em> 0% discount.</li>
+                  <li><em>Senior Citizen:</em> 10% discount on total subtotal.</li>
+                  <li><em>Insurance Partner:</em> 15% discount coverage.</li>
+                  <li><em>Promotional / Loyalty:</em> 5% discount.</li>
+                </ul>
+              </li>
+              <li>Choose payment method (<strong>Cash</strong>, <strong>Card</strong>, or <strong>Online Transfer</strong>) and save.</li>
+              <li>Click <strong>"Print Receipt"</strong> to preview and output a clean, formatted receipt suitable for A4 or thermal POS printers.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Section 5: Decision-Making Reports -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span style="background: var(--primary-light); color: var(--primary); width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">5</span>
+              Viewing Operational Reports & Decision Support
+            </div>
+          </div>
+          <div style="font-size: 14px; color: #334155; line-height: 1.7;">
+            <p>The <strong>Management Reports</strong> module provides high-level clinic intelligence:</p>
+            <ul style="margin-left: 24px; margin-top: 6px; margin-bottom: 12px;">
+              <li><strong>Realized Gross Revenue:</strong> Aggregate cash flow from settled visits.</li>
+              <li><strong>Dentist Workload & Performance:</strong> Comparative breakdown of patients treated and revenue generated per doctor.</li>
+              <li><strong>Procedure Popularity:</strong> Ranking of dental treatments (Root Canals, Scaling, Whitening, Extractions).</li>
+              <li><strong>Daily Schedule Sheets:</strong> Printable daily agenda for each surgery room.</li>
+            </ul>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth(true);
+    });
+  </script>
+</body>
+</html>

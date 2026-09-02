@@ -1,0 +1,36 @@
+name: Java CI/CD Build & Test Workflow
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    name: Build, Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compile and Run Automated Unit Tests
+        run: mvn --batch-mode clean test
+
+      - name: Package WAR Application Bundle
+        run: mvn --batch-mode package -DskipTests=false
+
+      - name: Upload Build Artifact (WAR)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sunrise-dental-sys-war
+          path: target/*.war
+          retention-days: 7
